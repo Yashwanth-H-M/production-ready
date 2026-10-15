@@ -35,7 +35,7 @@ export default function CommandCenter() {
       setBatches([]);
       setTreatments([]);
       setDiagnostics([]);
-      setError(caught instanceof ApiError ? caught.message : 'Live workspace data is temporarily unavailable.');
+      setError(caught instanceof ApiError ? caught.message : (caught instanceof Error ? caught.message : 'Live workspace data is temporarily unavailable.'));
     } finally {
       setLoading(false);
     }

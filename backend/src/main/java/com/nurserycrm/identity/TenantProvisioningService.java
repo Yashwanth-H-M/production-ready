@@ -34,13 +34,12 @@ public class TenantProvisioningService {
             """, principal.tenantId(), principal.tenantName());
 
         tenantAwareExecutor.execute(() -> {
-            IdentityUser user = users.findById(principal.userId()).orElse(null);
-            if (user == null) {
-                users.save(new IdentityUser(principal.userId(), principal.email()));
-            } else if (!user.getEmail().equals(principal.email())) {
-                user.setEmail(principal.email());
-                users.save(user);
-            }
+            jdbcTemplate.update("""
+                INSERT INTO users (id, tenant_id, email, role)
+                VALUES (?, ?, ?, 'grower')
+                ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email
+                WHERE users.email IS DISTINCT FROM EXCLUDED.email
+                """, principal.userId(), principal.tenantId(), principal.email());
             return null;
         });
     }
