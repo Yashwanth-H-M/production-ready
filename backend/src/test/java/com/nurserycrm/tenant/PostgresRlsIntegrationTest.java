@@ -15,6 +15,7 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -35,7 +36,8 @@ class PostgresRlsIntegrationTest {
     private static final String APP_PASSWORD = "test-app-password";
 
     @Container
-    private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("timescale/timescaledb:2.18.0-pg16")
+    private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>(
+        DockerImageName.parse("timescale/timescaledb:2.18.0-pg16").asCompatibleSubstituteFor("postgres"))
         .withDatabaseName("nursery_crm")
         .withUsername("canopy_owner")
         .withPassword("owner-test-password");
