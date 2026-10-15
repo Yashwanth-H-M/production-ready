@@ -58,7 +58,9 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
       throw new ApiError(payload?.message ?? payload?.error ?? `Request failed (${response.status}).`, response.status);
     }
     if (response.status === 204) return undefined as T;
-    const payload = await response.json() as T;
+    const text = await response.text();
+    if (!text || text.trim() === '') return undefined as T;
+    const payload = JSON.parse(text) as T;
     if (!clerkAuthEnabled && isRead && canUseBrowserStorage()) void setCache(cacheKey, payload).catch(() => undefined);
     return payload;
   } catch (error) {

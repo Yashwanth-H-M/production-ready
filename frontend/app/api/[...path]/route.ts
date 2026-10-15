@@ -21,6 +21,7 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   headers.delete('host');
   headers.delete('connection');
   headers.delete('cookie');
+  headers.delete('accept-encoding');
   headers.set('x-forwarded-host', request.headers.get('host') ?? '');
   headers.set('x-forwarded-proto', request.nextUrl.protocol.replace(':', ''));
 
@@ -48,10 +49,13 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
       cache: 'no-store',
       redirect: 'manual',
     });
+    const data = await upstream.arrayBuffer();
     const responseHeaders = new Headers(upstream.headers);
     responseHeaders.delete('connection');
     responseHeaders.delete('transfer-encoding');
-    return new NextResponse(upstream.body, { status: upstream.status, headers: responseHeaders });
+    responseHeaders.delete('content-encoding');
+    responseHeaders.delete('content-length');
+    return new NextResponse(data, { status: upstream.status, headers: responseHeaders });
   } catch {
     return NextResponse.json(
       { message: 'The workspace data service is temporarily unavailable. Please retry shortly.' },
