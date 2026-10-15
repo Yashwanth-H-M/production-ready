@@ -100,6 +100,14 @@ The backend must be a public HTTPS web service because the Vercel server-side ga
 
 The PostgreSQL RLS integration test is implemented and the `Production checks` workflow runs it on a hosted GitHub runner; the workflow fails if it is skipped. H2 tests cannot establish that the deployed database enforces the policies. Do not call the service production-ready until the hosted test, database bootstrap, Clerk configuration, and live smoke checks above pass.
 
+## Production observability and troubleshooting
+
+The backend provides comprehensive HTTP and security telemetry:
+- **HttpLoggingFilter**: Logs incoming method, request URI, client IP, Bearer token presence, response HTTP status code, and request execution time in milliseconds (--> [HTTP IN] / <-- [HTTP OUT]), while suppressing automated /health pings.
+- **TenantFilter**: Logs authenticated identity claims, organization names, and active tenant context.
+- **ApiExceptionHandler**: Logs full SLF4J stack traces with root cause for all unhandled runtime or SQL exceptions and returns structured JSON responses.
+- **Logging levels**: Configured to DEBUG for com.nurserycrm, org.springframework.security, and org.springframework.jdbc.core for real-time visibility in the Render dashboard logs.
+
 ## Backups and recovery
 
 Free Render Postgres has no managed backups. For a temporary academic review database, regularly export from an operator machine and verify a restore into an isolated PostgreSQL/TimescaleDB instance:

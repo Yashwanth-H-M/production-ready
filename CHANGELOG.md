@@ -2,6 +2,27 @@
 
 All notable changes to Canopy Operations Cloud are documented in this file. The project does not yet use formal semantic version tags; entries therefore describe the delivered production-readiness baseline.
 
+## Production Hardening, Observability, and Licensing — October 2026
+
+### Added
+
+| Area | Change |
+|---|---|
+| Observability | Added HttpLoggingFilter logging method, path, remote IP, bearer token presence, duration, and status for all incoming API calls while filtering automated /health pings. |
+| Exception handling | Enhanced ApiExceptionHandler with global fallback handler, structured JSON error payloads, and full SLF4J stack trace logging. |
+| Logging levels | Configured detailed application (com.nurserycrm=DEBUG), security (DEBUG), and JDBC (DEBUG) logging in both standard and production profiles. |
+| Identity testing | Added TenantProvisioningServiceTest verifying identity synchronization, organization claim mapping, and concurrent multi-thread provisioning safety. |
+| Licensing | Added official MIT License (LICENSE) declaring open-source terms and copyright for Canopy Operations Cloud. |
+
+### Changed
+
+| Area | Change |
+|---|---|
+| Backend concurrency | Hardened TenantProvisioningService to execute atomic PostgreSQL INSERT ... ON CONFLICT (id) DO UPDATE queries within TenantAwareExecutor, eliminating duplicate key race conditions during concurrent workspace bootstrap. |
+| API gateway proxy | Fixed Next.js app/api/[...path]/route.ts to buffer upstream body via arrayBuffer(), delete forwarded content-encoding and content-length headers, and prevent client decompression mismatch. |
+| Frontend error resilience | Fixed ApiError prototype inheritance across transpiled client bundles and safeguarded api.ts response parsing to eliminate Unexpected end of JSON input errors. |
+
+
 ## Unreleased — Canopy production-readiness baseline
 
 ### Added

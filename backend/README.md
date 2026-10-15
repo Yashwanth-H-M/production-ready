@@ -21,6 +21,8 @@ Use the repository-level Compose stack for the normal full-stack workflow. The b
 
 | Package | Responsibility |
 |---|---|
+| `config` | Security configuration, HTTP request/response logging filter, and global API exception handling. |
+| `identity` | Organization identity provisioning, user mapping, and concurrency-safe account synchronization. |
 | `security` | JWT signature verification, authenticated principal construction, and protected-route configuration. |
 | `tenant` | Trusted tenant context, `TenantAwareExecutor`, request filter, and server-derived ownership listener. |
 | `plantbatch` | Crop-batch lifecycle and inventory validation. |
@@ -59,6 +61,7 @@ mvn test
 |---|---|---|
 | `TenantContextTest` | Trusted tenant context lifecycle and missing context behavior. | H2-based service test. |
 | `PlantBatchServiceTenantIsolationTest` | Server-derived ownership and same-workspace relationship checks. | It does not prove PostgreSQL RLS. |
+| `TenantProvisioningServiceTest` | Identity provisioning, Clerk claim mapping, and multi-threaded race condition safety. | Unit test with Mockito. |
 | `SafeShipDateTest` | Safe-ship calculation boundary behavior. | Does not validate external label data. |
 
 H2 cannot emulate PostgreSQL row-level security. A real PostgreSQL integration suite using the non-owner application role and forced RLS remains required before broad public multi-tenant release.

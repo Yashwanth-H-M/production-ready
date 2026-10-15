@@ -41,6 +41,7 @@ sequenceDiagram
 |---|---|---|
 | JWT filter | Validates token signature and claims | Prevents unauthenticated or forged identities. |
 | Tenant filter | Derives tenant from the verified principal | Prevents a client from selecting a different workspace. |
+| Identity provisioning | Atomic PostgreSQL ON CONFLICT within TenantAwareExecutor | Safely handles concurrent requests without duplicate key conflicts while enforcing RLS. |
 | Header mismatch guard | Rejects conflicting caller tenant header | Detects or blocks legacy/client misuse. |
 | Tenant executor | Requires tenant context and scopes PostgreSQL context to the transaction | Protects pooled-connection behavior. |
 | Ownership listener | Writes `tenant_id` from trusted context | Prevents ownership injection through request JSON. |

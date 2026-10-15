@@ -57,9 +57,11 @@ The product currently supports IndexedDB read caching and queue primitives only.
 
 ## Authentication behavior
 
-The shipped shared API client currently bootstraps a local token by calling `POST /api/auth/local-session`, stores it in browser storage, and forwards it through the gateway. This is a local-development path only; the endpoint ignores a request body and is disabled in the production profile. Tenant identity always comes from verified backend token claims, never client-selected state.
+In production, authentication is powered by Clerk Organizations. Users authenticate against Clerk, select an organization, and the Next.js API gateway (`app/api/[...path]/route.ts`) automatically attaches the signed Clerk session token as a `Bearer` header to upstream backend requests. 
 
-Before public production use, replace the local-session bootstrap with the approved identity-provider sign-in and token-refresh flow. Do not interpret the presence of production gateway support as a completed production user-authentication experience.
+The gateway buffers upstream payloads via `arrayBuffer()`, strips transport-level encoding headers (`content-encoding`, `content-length`), and delivers clean responses to the browser, while `lib/api.ts` provides safe JSON parsing with client-side `ApiError` hierarchy.
+
+For local Compose development, the client can fall back to the restricted local demo session (`POST /api/auth/local-session`). Tenant identity always comes from verified backend token claims, never client-selected state.
 
 ## Contributor expectations
 

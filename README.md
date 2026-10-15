@@ -103,8 +103,8 @@ Read [DEPLOYMENT.md](DEPLOYMENT.md) before deploying. Render Free Postgres expir
 
 ## Project status
 
-The core product, tenant hardening, CRM interface, production frontend bundle, hosted release workflow, and deployment configuration are in place. Remaining release work is explicit: provision the cloud resources, run the hosted PostgreSQL RLS test with zero skips, verify a production Clerk app and token claims, and complete live tenant-isolation smoke checks. Render Free Postgres is temporary and is not durable production storage. Offline write synchronization, sensor ingestion, and trained diagnostic models remain planned. See [ROADMAP.md](ROADMAP.md) for scope and sequencing.
+The core product, multi-tenant hardening, CRM interface, production frontend bundle, hosted release workflow, and cloud deployment are verified. The application is running in production with Clerk Organizations authentication, Vercel frontend gateway, and Render Spring Boot backend connecting to PostgreSQL 16 with TimescaleDB and Row-Level Security (RLS). High-concurrency identity auto-provisioning, detailed HTTP and security logging, and decompressed API stream buffering are active in production. Offline write synchronization, sensor ingestion, and trained diagnostic models remain planned in [ROADMAP.md](ROADMAP.md).
 
 ## License and ownership
 
-This repository does not currently declare an open-source license. Treat it as proprietary project material unless the owner adds a license file.
+This project is licensed under the [MIT License](LICENSE) — Copyright (c) 2026 Yashwanth H M / Canopy Operations Cloud.
