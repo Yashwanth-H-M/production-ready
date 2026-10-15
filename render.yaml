@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: canopy-api
+    runtime: docker
+    plan: free
+    region: singapore
+    # Create and bootstrap canopy-postgres before syncing this Blueprint.
+    # Its name must match the existing Render Postgres resource.
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
+      - key: AUTH_PROVIDER
+        value: clerk
+      - key: LOCAL_DEMO_AUTH_ENABLED
+        value: "false"
+      - key: TENANT_CONTEXT_SQL_ENABLED
+        value: "true"
+      - key: CLERK_API_AUDIENCE
+        value: canopy-api
+      - key: DATABASE_HOST
+        fromDatabase:
+          name: canopy-postgres
+          property: host
+      - key: DATABASE_PORT
+        fromDatabase:
+          name: canopy-postgres
+          property: port
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: canopy-postgres
+          property: database
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: CLERK_ISSUER
+        sync: false
+      - key: CLERK_JWKS_URL
+        sync: false

@@ -1,0 +1,13 @@
+# Keep Render's Docker build context limited to the backend source and avoid
+# sending developer artifacts, credentials, or previously built output.
+.git
+.env
+.env.*
+!.env.production.example
+target/
+*.log
+*.iml
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store

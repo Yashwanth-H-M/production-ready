@@ -1,0 +1,46 @@
+name: Bootstrap fresh Render database
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_fresh_database:
+        description: Confirm this is a new, empty Render database (baseline schema is not a migration).
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    if: ${{ github.ref == 'refs/heads/main' && inputs.confirm_fresh_database }}
+    runs-on: ubuntu-latest
+    environment: render-database-bootstrap
+    env:
+      PGHOST: ${{ secrets.RENDER_DB_EXTERNAL_HOST }}
+      PGPORT: ${{ secrets.RENDER_DB_EXTERNAL_PORT }}
+      PGDATABASE: ${{ secrets.RENDER_DB_NAME }}
+      PGUSER: ${{ secrets.RENDER_DB_OWNER_USER }}
+      PGPASSWORD: ${{ secrets.RENDER_DB_OWNER_PASSWORD }}
+      PGSSLMODE: require
+      POSTGRES_USER: ${{ secrets.RENDER_DB_OWNER_USER }}
+      POSTGRES_DB: ${{ secrets.RENDER_DB_NAME }}
+      APP_DB_USER: canopy_app
+      APP_DB_PASSWORD: ${{ secrets.RENDER_APP_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install --yes postgresql-client
+      - name: Apply the baseline schema and tenant security controls
+        run: |
+          set -euo pipefail
+          psql --set ON_ERROR_STOP=1 --file database/schema.sql
+          psql --set ON_ERROR_STOP=1 --file database/03-security-hardening.sql
+          sh database/04-create-app-role.sh
+      - name: Verify TimescaleDB extension and sensor hypertable
+        run: |
+          set -euo pipefail
+          test "$(psql --tuples-only --no-align --command "SELECT count(*) FROM pg_extension WHERE extname = 'timescaledb'")" = "1"
+          test "$(psql --tuples-only --no-align --command "SELECT count(*) FROM timescaledb_information.hypertables WHERE hypertable_name = 'sensor_readings'")" = "1"
+          echo "TimescaleDB and sensor_readings hypertable are ready."

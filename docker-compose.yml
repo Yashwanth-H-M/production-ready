@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: nursery-crm-postgres
+    environment:
+      POSTGRES_USER: nursery_owner
+      POSTGRES_PASSWORD: nursery_owner
+      POSTGRES_DB: nursery_crm
+      APP_DB_USER: nursery_app
+      APP_DB_PASSWORD: nursery_app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+      - ./database/03-security-hardening.sql:/docker-entrypoint-initdb.d/03-security-hardening.sql
+      - ./database/04-create-app-role.sh:/docker-entrypoint-initdb.d/04-create-app-role.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nursery_owner -d nursery_crm"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nursery-crm-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/nursery_crm
+      SPRING_DATASOURCE_USERNAME: nursery_app
+      SPRING_DATASOURCE_PASSWORD: nursery_app
+      JWT_SECRET: local-dev-only-change-me-before-any-real-deployment
+      LOCAL_DEMO_AUTH_ENABLED: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_AUTH_PROVIDER: local
+    container_name: nursery-crm-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      API_INTERNAL_URL: http://backend:8080
+    depends_on:
+      - backend
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: nursery-crm-ai
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

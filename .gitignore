@@ -1,0 +1,25 @@
+# Operating-system and editor artifacts
+.DS_Store
+Thumbs.db
+*.log
+
+# Secrets and environment configuration
+.env
+.env.*
+!.env.production.example
+
+# Frontend artifacts
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/coverage/
+*.tsbuildinfo
+
+# Backend and Python artifacts
+backend/target/
+ai-service/__pycache__/
+ai-service/.venv/
+*.py[cod]
+
+# Local databases and generated files
+postgres_data/

@@ -1,0 +1,109 @@
+services:
+  postgres:
+    image: timescale/timescaledb:2.18.0-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-nursery_crm}
+      APP_DB_USER: ${APP_DB_USER:?APP_DB_USER is required}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/03-security-hardening.sql:/docker-entrypoint-initdb.d/03-security-hardening.sql:ro
+      - ./database/04-create-app-role.sh:/docker-entrypoint-initdb.d/04-create-app-role.sh:ro
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: production
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nursery_crm}
+      SPRING_DATASOURCE_USERNAME: ${APP_DB_USER:?APP_DB_USER is required}
+      SPRING_DATASOURCE_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD is required}
+      AUTH_PROVIDER: clerk
+      CLERK_ISSUER: ${CLERK_ISSUER:?CLERK_ISSUER is required}
+      CLERK_JWKS_URL: ${CLERK_JWKS_URL:?CLERK_JWKS_URL is required}
+      CLERK_API_AUDIENCE: ${CLERK_API_AUDIENCE:-canopy-api}
+      LOCAL_DEMO_AUTH_ENABLED: "false"
+      TENANT_CONTEXT_SQL_ENABLED: "true"
+    expose:
+      - "8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health | grep -q ok"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_AUTH_PROVIDER: clerk
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      AUTH_PROVIDER: clerk
+      API_INTERNAL_URL: http://backend:8080
+    expose:
+      - "3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - "8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      CADDY_DOMAIN: ${CADDY_DOMAIN:?CADDY_DOMAIN is required}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      frontend:
+        condition: service_started
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
