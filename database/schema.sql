@@ -137,23 +137,23 @@ ALTER TABLE orders             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_line_items   ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY tenant_isolation ON users
-    USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+    USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
 CREATE POLICY tenant_isolation ON greenhouse_zones
-    USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+    USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
 CREATE POLICY tenant_isolation ON plant_batches
-    USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+    USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
 CREATE POLICY tenant_isolation ON batch_events
-    USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+    USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
 CREATE POLICY tenant_isolation ON treatments
-    USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+    USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
 CREATE POLICY tenant_isolation ON diagnostic_logs
-    USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+    USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
 CREATE POLICY tenant_isolation ON sensor_readings
-    USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+    USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
 CREATE POLICY tenant_isolation ON orders
-    USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+    USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
 CREATE POLICY tenant_isolation ON order_line_items
-    USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+    USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
 
 -- current_setting(..., true) returns NULL instead of raising when
 -- app.tenant_id hasn't been set. Comparing tenant_id = NULL is never

@@ -6,15 +6,15 @@
 -- Tenant IDs are derived from the transaction-local context set by
 -- TenantAwareExecutor. JPA entities deliberately do not accept tenant_id
 -- from API requests, preventing callers from choosing their owning tenant.
-ALTER TABLE users              ALTER COLUMN tenant_id SET DEFAULT (current_setting('app.tenant_id', true)::uuid);
-ALTER TABLE greenhouse_zones   ALTER COLUMN tenant_id SET DEFAULT (current_setting('app.tenant_id', true)::uuid);
-ALTER TABLE plant_batches      ALTER COLUMN tenant_id SET DEFAULT (current_setting('app.tenant_id', true)::uuid);
-ALTER TABLE batch_events       ALTER COLUMN tenant_id SET DEFAULT (current_setting('app.tenant_id', true)::uuid);
-ALTER TABLE treatments         ALTER COLUMN tenant_id SET DEFAULT (current_setting('app.tenant_id', true)::uuid);
-ALTER TABLE diagnostic_logs    ALTER COLUMN tenant_id SET DEFAULT (current_setting('app.tenant_id', true)::uuid);
-ALTER TABLE sensor_readings    ALTER COLUMN tenant_id SET DEFAULT (current_setting('app.tenant_id', true)::uuid);
-ALTER TABLE orders             ALTER COLUMN tenant_id SET DEFAULT (current_setting('app.tenant_id', true)::uuid);
-ALTER TABLE order_line_items   ALTER COLUMN tenant_id SET DEFAULT (current_setting('app.tenant_id', true)::uuid);
+ALTER TABLE users              ALTER COLUMN tenant_id SET DEFAULT (NULLIF(current_setting('app.tenant_id', true), '')::uuid);
+ALTER TABLE greenhouse_zones   ALTER COLUMN tenant_id SET DEFAULT (NULLIF(current_setting('app.tenant_id', true), '')::uuid);
+ALTER TABLE plant_batches      ALTER COLUMN tenant_id SET DEFAULT (NULLIF(current_setting('app.tenant_id', true), '')::uuid);
+ALTER TABLE batch_events       ALTER COLUMN tenant_id SET DEFAULT (NULLIF(current_setting('app.tenant_id', true), '')::uuid);
+ALTER TABLE treatments         ALTER COLUMN tenant_id SET DEFAULT (NULLIF(current_setting('app.tenant_id', true), '')::uuid);
+ALTER TABLE diagnostic_logs    ALTER COLUMN tenant_id SET DEFAULT (NULLIF(current_setting('app.tenant_id', true), '')::uuid);
+ALTER TABLE sensor_readings    ALTER COLUMN tenant_id SET DEFAULT (NULLIF(current_setting('app.tenant_id', true), '')::uuid);
+ALTER TABLE orders             ALTER COLUMN tenant_id SET DEFAULT (NULLIF(current_setting('app.tenant_id', true), '')::uuid);
+ALTER TABLE order_line_items   ALTER COLUMN tenant_id SET DEFAULT (NULLIF(current_setting('app.tenant_id', true), '')::uuid);
 
 -- The initialization role also serves the application locally. Table owners
 -- otherwise bypass RLS, so force policy application even for that role.
