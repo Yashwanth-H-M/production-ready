@@ -6,6 +6,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -20,6 +22,7 @@ import java.io.IOException;
 @Component
 public class TenantFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(TenantFilter.class);
     private final TenantProvisioningService tenantProvisioningService;
 
     public TenantFilter(TenantProvisioningService tenantProvisioningService) {
@@ -36,11 +39,16 @@ public class TenantFilter extends OncePerRequestFilter {
                 String suppliedTenant = request.getHeader("X-Tenant-ID");
                 if (suppliedTenant != null && !suppliedTenant.isBlank()
                     && !suppliedTenant.equals(principal.tenantId().toString())) {
+                    log.warn("Tenant header mismatch: supplied={}, principal={}", suppliedTenant, principal.tenantId());
                     response.sendError(HttpServletResponse.SC_FORBIDDEN, "Tenant selection does not match the authenticated workspace.");
                     return;
                 }
+                log.info("Tenant context active: tenantId={}, org={}, userId={}, email={}",
+                    principal.tenantId(), principal.tenantName(), principal.userId(), principal.email());
                 TenantContext.set(principal.tenantId().toString());
                 tenantProvisioningService.ensureIdentity(principal);
+            } else if (authentication != null) {
+                log.debug("Request has non-tenant authentication principal: {}", authentication.getPrincipal());
             }
             filterChain.doFilter(request, response);
         } finally {
